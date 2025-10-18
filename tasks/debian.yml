@@ -50,6 +50,8 @@
       - amd64
       - i386
     signed_by: https://dl.winehq.org/wine-builds/winehq.key
+    state: present
+    enabled: true
 
 - name: Update APT cache
   ansible.builtin.apt:
