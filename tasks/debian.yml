@@ -5,7 +5,9 @@
   changed_when: false
 
 - name: Enable 32 bit architecture
-  when: '"i386" not in architecture.stdout'
+  when:
+    - '"i386" not in architecture.stdout'
+    - not (ansible_distribution == "Ubuntu" and ansible_distribution_version | float >= 25.10)
   ansible.builtin.command: dpkg --add-architecture i386
   changed_when: false
 
