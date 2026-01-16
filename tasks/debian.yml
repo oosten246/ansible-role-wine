@@ -23,18 +23,17 @@
 - name: Check if OS is Linux Mint
   when: ansible_facts['distribution'] == "Linux Mint"
   block:
-    - name: Set ansible_facts.distribution for Linux Mint
+    - name: Set distribution for Linux Mint
       ansible.builtin.set_fact:
-        ansible_facts.distribution: "Ubuntu"
-        ansible_facts.distribution_release: "noble"
-      tags:
-        - skip_ansible_lint # variable naming; no role prefix
+        wine_os_distribution: "ubuntu"
+        wine_os_release: "noble"
 
-    - name: Set ansible_facts.distribution_release for Linux Mint
-      when: ansible_facts.distribution_release == item.mint
+    - name: Set release for Linux Mint
+      when: ansible_facts['distribution_release'] == item.mint
       ansible.builtin.set_fact:
-        ansible_facts.distribution_release: "{{ item.ubuntu }}"
+        wine_os_release: "{{ item.ubuntu }}"
       loop:
+        - { mint: "zena", ubuntu: "noble" }
         - { mint: "zara", ubuntu: "noble" }
         - { mint: "xia", ubuntu: "noble" }
         - { mint: "wilma", ubuntu: "noble" }
@@ -42,15 +41,19 @@
         - { mint: "victoria", ubuntu: "jammy" }
         - { mint: "vera", ubuntu: "jammy" }
         - { mint: "vanessa", ubuntu: "jammy" }
-      tags:
-        - skip_ansible_lint # variable naming; no role prefix
+
+- name: Set distribution and release facts for {{ ansible_facts['distribution'] }}
+  when: ansible_facts['distribution'] != "Linux Mint"
+  ansible.builtin.set_fact:
+    wine_os_distribution: "{{ ansible_facts['distribution'] | lower }}"
+    wine_os_release: "{{ ansible_facts['distribution_release'] }}"
 
 - name: Add repository
   ansible.builtin.deb822_repository:
     name: winehq
     types: deb
-    uris: https://dl.winehq.org/wine-builds/{{ ansible_facts['distribution'] | lower }}
-    suites: "{{ ansible_facts['distribution_release'] }}"
+    uris: "https://dl.winehq.org/wine-builds/{{ wine_os_distribution }}"
+    suites: "{{ wine_os_release }}"
     components: main
     architectures:
       - amd64
